@@ -33,10 +33,11 @@ public class TlsConnectionProvider : ConnectionProvider {
         return xmpp_target.nth(0).data.get_priority();
     }
 
-    public async override IOStream? connect(XmppStream stream) {
+    public async override IOStream? connect(XmppStream stream, out string hostname) {
         SocketClient client = new SocketClient();
         try {
-            IOStream? io_stream = yield client.connect_to_host_async(srv_target.get_hostname(), srv_target.get_port());
+            hostname = srv_target.get_hostname();
+            IOStream? io_stream = yield client.connect_to_host_async(hostname, srv_target.get_port());
             TlsConnection tls_connection = TlsClientConnection.new(io_stream, new NetworkAddress(stream.remote_name.to_string(), srv_target.get_port()));
             tls_connection.accept_certificate.connect(stream.get_module(Tls.Module.IDENTITY).on_invalid_certificate);
             stream.add_flag(new Tls.Flag() { finished=true });
