@@ -4,7 +4,7 @@ find_packages(ENGINE_PACKAGES REQUIRED
     GIO
     GLib
     GObject
-    GSasl
+    Sasl2
 )
 
 vala_precompile(ENGINE_VALA_C
@@ -87,7 +87,7 @@ add_custom_target(xmpp-vala-vapi
 DEPENDS
     ${CMAKE_BINARY_DIR}/exports/xmpp-vala.vapi
     ${CMAKE_BINARY_DIR}/exports/xmpp-vala.deps
-    ${CMAKE_CURRENT_SOURCE_DIR}/vapi/libgsasl.vapi
+    ${CMAKE_CURRENT_SOURCE_DIR}/vapi/libsasl2.vapi
 )
 
 add_definitions(${VALA_CFLAGS})

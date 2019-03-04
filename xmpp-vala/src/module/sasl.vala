@@ -1,4 +1,4 @@
-using Gsasl;
+using Sasl2;
 
 namespace Xmpp.Sasl {
     private const string NS_URI = "urn:ietf:params:xml:ns:xmpp-sasl";
@@ -6,7 +6,7 @@ namespace Xmpp.Sasl {
 
     private class Flag : XmppStreamFlag {
         public static FlagIdentity<Flag> IDENTITY = new FlagIdentity<Flag>(NS_URI, "sasl");
-        public Gsasl.Session? sasl_session;
+        public Sasl2.Connection? sasl_session;
         public bool finished = false;
         public bool sasl_needs_more = true;
 
@@ -19,13 +19,13 @@ namespace Xmpp.Sasl {
 
         public string name { get; set; }
         public string password { get; set; }
-        private Gsasl.Context sasl_context;
+        private Sasl2.Connection sasl_conn;
 
         public signal void received_auth_failure(XmppStream stream, StanzaNode node);
         public signal void sasl_error(XmppStream stream, string description);
 
         public Module(string name, string password) {
-            Gsasl.Result result = Gsasl.Context.init(out this.sasl_context);
+            Sasl2.Result result = Gsasl.Context.init(out this.sasl_conn);
             assert(result == Gsasl.Result.OK);
             this.name = name;
             this.password = password;
@@ -89,7 +89,7 @@ namespace Xmpp.Sasl {
 
             var hostname = mechanisms.get_subnode("hostname", HOSTNAME_NS_URI);
 
-            string? suggested_mechanism = this.sasl_context.client_suggest_mechanism(string.joinv(" ", supported_mechanisms));
+            string? suggested_mechanism = this.sasl_conn.client_suggest_mechanism(string.joinv(" ", supported_mechanisms));
             if (suggested_mechanism == null) {
                 stderr.printf("No supported mechanism provided by server at %s. Offered: %s\n", stream.remote_name.to_string(), string.joinv(",", supported_mechanisms));
                 return;
@@ -97,7 +97,7 @@ namespace Xmpp.Sasl {
 
             var flag = new Flag();
             Gsasl.Result result;
-            result = this.sasl_context.client_start(suggested_mechanism, out flag.sasl_session);
+            result = this.sasl_conn.client_start(suggested_mechanism, out flag.sasl_session);
             if (result != Gsasl.Result.OK) {
                 sasl_error(stream, result.description());
                 return;
